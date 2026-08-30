@@ -1,0 +1,2401 @@
+对，这样定位就更明确了：**不是“像资源管理器一样加标签”，而是直接把 Google Chrome 的标签页、收藏夹、快捷键和会话逻辑移植到文件管理场景里。**
+
+我按你的意思把“快捷键也尽量遵循 Chrome 习惯”一起整合进去。文件和文件夹都能收藏，而不是只收藏目录。
+
+# 跨平台 Chrome 风格多标签文件管理器开发提示词
+
+请基于：
+
+```text
+Tauri 2
+Vue 3
+TypeScript
+Rust
+```
+
+开发一款现代化、跨平台、高性能的桌面文件管理器。
+
+支持：
+
+```text
+Windows 10 / 11
+macOS / MacBook
+Linux
+```
+
+核心定位不是模仿 Windows Explorer 或 macOS Finder，而是：
+
+> **把 Google Chrome 的多标签、收藏夹、快捷键、历史记录、会话恢复等成熟交互方式移植到文件管理领域。**
+
+用户应该感觉：
+
+```text
+浏览网页使用 Chrome
+管理文件使用本软件
+```
+
+两者操作逻辑高度相似。
+
+---
+
+# 一、核心技术栈
+
+必须采用：
+
+```text
+Tauri 2
++
+Vue 3
++
+TypeScript
++
+Rust
+```
+
+前端：
+
+```text
+Vue 3
+TypeScript
+Pinia
+Vue Router
+```
+
+推荐：
+
+```text
+Composition API
+<script setup lang="ts">
+```
+
+禁止大量使用 Options API。
+
+Rust / Tauri 后端负责：
+
+```text
+文件系统操作
+目录读取
+文件复制
+文件移动
+删除
+回收站
+文件搜索
+Everything
+Spotlight
+Linux 索引
+系统集成
+文件监听
+缩略图
+磁盘信息
+系统 API
+```
+
+Vue 前端负责：
+
+```text
+标签页
+收藏夹
+文件列表
+地址栏
+侧边栏
+设置
+搜索界面
+任务中心
+交互状态
+```
+
+不要让前端承担大型文件扫描、复制等重任务。
+
+---
+
+# 二、产品设计核心
+
+整个产品的交互理念：
+
+```text
+Chrome
+↓
+网页标签
+网页收藏夹
+网页历史
+地址栏
+快捷键
+恢复标签
+固定标签
+标签拖动
+
+转换成：
+
+文件管理器
+↓
+文件夹标签
+文件/文件夹收藏夹
+目录历史
+文件路径栏
+Chrome 风格快捷键
+恢复目录标签
+固定目录标签
+标签拖动
+```
+
+不要简单照搬 Chrome 外观。
+
+重点模仿：
+
+```text
+交互逻辑
+操作习惯
+快捷键
+标签行为
+收藏体系
+历史体系
+```
+
+---
+
+# 三、Chrome 风格标签页
+
+标签栏是软件最核心的 UI。
+
+形式类似：
+
+```text
+┌─────────────────────────────────────────────────┐
+│ 📁 下载 × │ 📁 项目 × │ 📁 AI × │ 📁 图片 × │ + │
+└─────────────────────────────────────────────────┘
+```
+
+每一个标签代表：
+
+```text
+一个文件系统位置
+```
+
+例如：
+
+```text
+D:\Downloads
+
+D:\Projects
+
+/Users/bin/Downloads
+
+/home/bin/projects
+```
+
+---
+
+# 四、新建标签
+
+完全参考 Chrome：
+
+Windows / Linux：
+
+```text
+Ctrl + T
+```
+
+macOS：
+
+```text
+Command + T
+```
+
+点击：
+
+```text
++
+```
+
+同样可以创建标签。
+
+新标签默认打开：
+
+```text
+文件管理主页
+```
+
+主页包含：
+
+```text
+收藏夹
+最近访问
+工作区
+磁盘
+常用位置
+```
+
+---
+
+# 五、关闭标签
+
+Windows / Linux：
+
+```text
+Ctrl + W
+```
+
+macOS：
+
+```text
+Command + W
+```
+
+支持：
+
+```text
+标签 × 按钮
+
+鼠标中键关闭
+
+右键关闭
+```
+
+行为尽量和 Chrome 一致。
+
+---
+
+# 六、恢复关闭标签
+
+Windows / Linux：
+
+```text
+Ctrl + Shift + T
+```
+
+macOS：
+
+```text
+Command + Shift + T
+```
+
+恢复最近关闭的文件夹标签。
+
+必须恢复：
+
+```text
+路径
+
+前进后退历史
+
+排序
+
+视图模式
+
+滚动位置
+```
+
+尽可能恢复之前状态。
+
+连续使用：
+
+```text
+Ctrl + Shift + T
+```
+
+可以继续恢复更早关闭的标签。
+
+行为参考 Chrome。
+
+---
+
+# 七、切换标签
+
+支持：
+
+Windows / Linux：
+
+```text
+Ctrl + Tab
+Ctrl + Shift + Tab
+
+Ctrl + 1
+Ctrl + 2
+...
+Ctrl + 8
+Ctrl + 9
+```
+
+macOS：
+
+对应使用：
+
+```text
+Command
+```
+
+或者遵循 macOS 常见标签切换习惯，并允许用户修改。
+
+其中：
+
+```text
+Ctrl + 1 ~ Ctrl + 8
+```
+
+进入对应标签。
+
+```text
+Ctrl + 9
+```
+
+进入最后一个标签。
+
+参考 Chrome。
+
+---
+
+# 八、标签拖动
+
+必须实现类似 Chrome 的标签拖动系统。
+
+支持：
+
+```text
+标签拖动排序
+
+标签拖出窗口
+
+标签拖入另一个窗口
+
+标签合并
+
+标签在窗口之间移动
+```
+
+如果第一版实现跨窗口拖放成本过高：
+
+第一版至少必须完成：
+
+```text
+同窗口拖动排序
+```
+
+但架构必须预留跨窗口能力。
+
+---
+
+# 九、固定标签
+
+参考 Chrome：
+
+标签右键：
+
+```text
+固定
+
+取消固定
+```
+
+固定以后：
+
+```text
+移动到最左侧
+
+缩小宽度
+
+只显示图标或简化名称
+
+软件重启后仍存在
+```
+
+例如：
+
+```text
+📁 D:
+📁 下载
+📁 项目
+```
+
+可以长期固定。
+
+---
+
+# 十、标签右键菜单
+
+至少包含：
+
+```text
+新建标签
+
+复制标签
+
+固定标签
+
+取消固定
+
+加入收藏夹
+
+关闭标签
+
+关闭其他标签
+
+关闭右侧标签
+
+重新打开关闭的标签
+
+在新窗口打开
+```
+
+交互顺序尽量参考 Chrome。
+
+---
+
+# 十一、标签独立状态
+
+每一个标签必须拥有自己的：
+
+```text
+当前路径
+
+后退历史
+
+前进历史
+
+搜索状态
+
+排序
+
+视图
+
+选择状态
+
+滚动位置
+```
+
+例如：
+
+标签 A：
+
+```text
+D:\Downloads
+```
+
+标签 B：
+
+```text
+D:\Projects
+```
+
+用户从 A 切到 B，再回到 A：
+
+A 的：
+
+```text
+路径
+滚动条
+文件排序
+浏览历史
+```
+
+全部保持原状态。
+
+不要切标签以后重新初始化。
+
+---
+
+# 十二、Chrome 风格收藏夹【核心】
+
+收藏系统必须参考：
+
+```text
+Google Chrome Bookmarks
+```
+
+但 Chrome 收藏的是：
+
+```text
+网址
+```
+
+本软件收藏：
+
+```text
+文件
+
+文件夹
+```
+
+两种都必须支持。
+
+例如：
+
+```text
+★ 收藏夹
+
+AI项目
+开发资料
+模型
+Downloads
+
+需求.txt
+API.md
+config.json
+example.py
+```
+
+---
+
+# 十三、收藏文件
+
+这是明确要求。
+
+不仅文件夹可以收藏。
+
+普通文件也可以收藏：
+
+```text
+TXT
+Markdown
+PDF
+DOCX
+XLSX
+EXE
+APP
+代码文件
+图片
+压缩包
+任意普通文件
+```
+
+例如：
+
+```text
+★ 开发收藏
+
+📁 Prompt
+📁 Projects
+📄 requirements.txt
+📄 README.md
+📄 API文档.pdf
+📄 config.json
+```
+
+点击文件收藏：
+
+```text
+直接打开文件
+```
+
+点击文件夹收藏：
+
+```text
+进入目录
+```
+
+---
+
+# 十四、收藏方式
+
+支持：
+
+### 地址栏星标
+
+类似 Chrome：
+
+```text
+路径栏右侧：
+
+☆
+```
+
+当前目录没有收藏：
+
+```text
+☆
+```
+
+已经收藏：
+
+```text
+★
+```
+
+点击：
+
+```text
+添加 / 编辑收藏
+```
+
+---
+
+右键文件：
+
+```text
+添加到收藏夹
+```
+
+右键文件夹：
+
+```text
+添加到收藏夹
+```
+
+支持快捷键：
+
+Windows / Linux：
+
+```text
+Ctrl + D
+```
+
+macOS：
+
+```text
+Command + D
+```
+
+完全参考 Chrome 收藏网页快捷键。
+
+当前焦点在普通文件时：
+
+```text
+收藏选中文件
+```
+
+没有选择文件时：
+
+```text
+收藏当前目录
+```
+
+需要合理设计焦点规则，避免误收藏。
+
+---
+
+# 十五、收藏栏
+
+参考 Chrome：
+
+地址栏下方提供：
+
+```text
+收藏栏
+```
+
+例如：
+
+```text
+────────────────────────────────────────────────
+
+📁 AI   📁 下载   📁 项目   📄 API.md   📄 需求.txt
+
+────────────────────────────────────────────────
+```
+
+用户可以直接点击。
+
+支持：
+
+```text
+文件
+
+文件夹
+
+收藏夹目录
+```
+
+---
+
+# 十六、收藏夹目录
+
+和 Chrome 一样允许：
+
+```text
+收藏夹文件夹
+```
+
+例如：
+
+```text
+开发
+├─ 📁 AI
+├─ 📁 Python
+├─ 📄 README.md
+└─ 📄 requirements.txt
+
+常用
+├─ 📁 Downloads
+├─ 📁 Desktop
+└─ 📄 记事.txt
+
+服务器
+├─ 📁 Backup
+└─ 📄 SSH说明.md
+```
+
+支持无限层级数据结构。
+
+UI 默认避免过深。
+
+---
+
+# 十七、收藏拖动排序
+
+必须像 Chrome 收藏栏一样：
+
+```text
+直接拖动收藏项目
+```
+
+可以：
+
+```text
+改变顺序
+
+拖进收藏文件夹
+
+拖出收藏文件夹
+
+文件夹之间移动
+```
+
+同时提供非拖拽操作：
+
+```text
+移动到...
+```
+
+方便键盘操作。
+
+---
+
+# 十八、收藏管理器
+
+参考：
+
+```text
+chrome://bookmarks
+```
+
+设计：
+
+```text
+收藏管理器
+```
+
+快捷键可以参考 Chrome：
+
+Windows / Linux：
+
+```text
+Ctrl + Shift + O
+```
+
+macOS：
+
+```text
+Command + Option + B
+```
+
+具体 macOS 快捷键遵循系统习惯并允许配置。
+
+收藏管理器支持：
+
+```text
+搜索收藏
+
+新建收藏文件夹
+
+重命名
+
+删除
+
+移动
+
+拖动排序
+
+修改路径
+
+查看失效收藏
+
+导入
+
+导出
+```
+
+---
+
+# 十九、失效收藏
+
+文件可能：
+
+```text
+移动
+
+重命名
+
+删除
+
+磁盘拔出
+```
+
+收藏不能直接消失。
+
+状态改成：
+
+```text
+⚠ 文件不存在
+```
+
+并允许：
+
+```text
+重新定位
+
+修改路径
+
+删除收藏
+```
+
+移动硬盘暂时断开：
+
+应该显示：
+
+```text
+设备当前不可用
+```
+
+不要直接认定收藏失效并删除。
+
+---
+
+# 二十、收藏栏显示与隐藏
+
+参考 Chrome：
+
+Windows / Linux：
+
+```text
+Ctrl + Shift + B
+```
+
+切换：
+
+```text
+显示收藏栏
+
+隐藏收藏栏
+```
+
+macOS：
+
+使用对应 Command 快捷键。
+
+---
+
+# 二十一、地址栏参考 Chrome Omnibox
+
+文件管理器顶部设计统一地址栏。
+
+普通状态：
+
+```text
+D: > Projects > AI > UFM
+```
+
+点击地址栏：
+
+直接进入完整路径编辑模式：
+
+```text
+D:\Projects\AI\UFM
+```
+
+快捷键：
+
+Windows / Linux：
+
+```text
+Ctrl + L
+```
+
+或者：
+
+```text
+Alt + D
+```
+
+macOS：
+
+```text
+Command + L
+```
+
+参考 Chrome 地址栏。
+
+---
+
+# 二十二、地址栏不只是路径
+
+未来把地址栏做成：
+
+```text
+File Omnibox
+```
+
+支持：
+
+### 输入路径
+
+```text
+D:\Projects
+```
+
+### 输入文件路径
+
+```text
+D:\Projects\README.md
+```
+
+### 输入关键词
+
+```text
+README
+```
+
+自动搜索。
+
+### 输入命令
+
+```text
+> settings
+
+> bookmarks
+
+> history
+
+> workspace
+```
+
+### 输入特殊关键词
+
+```text
+ufm://settings
+
+ufm://bookmarks
+
+ufm://history
+```
+
+类似：
+
+```text
+chrome://settings
+chrome://history
+chrome://bookmarks
+```
+
+---
+
+# 二十三、内部页面
+
+设计类似 Chrome 的内部页面：
+
+```text
+ufm://home
+
+ufm://bookmarks
+
+ufm://history
+
+ufm://settings
+
+ufm://downloads
+
+ufm://tasks
+
+ufm://workspace
+
+ufm://diagnostics
+```
+
+它们本身也可以：
+
+```text
+作为标签页打开。
+```
+
+这是非常重要的架构设计。
+
+不要把设置永远做成独立弹窗。
+
+---
+
+# 二十四、历史记录
+
+参考：
+
+```text
+Chrome History
+```
+
+文件管理器记录：
+
+```text
+访问过的文件夹
+
+打开过的收藏
+
+最近文件
+
+最近搜索
+```
+
+内部页面：
+
+```text
+ufm://history
+```
+
+支持：
+
+```text
+按时间查看
+
+搜索
+
+删除单条
+
+清除记录
+```
+
+用户可以关闭：
+
+```text
+历史记录功能
+```
+
+---
+
+# 二十五、Chrome 风格键盘习惯【核心】
+
+整个软件快捷键优先参考：
+
+```text
+Google Chrome
+```
+
+而不是重新发明一套。
+
+Windows / Linux 使用：
+
+```text
+Ctrl
+```
+
+macOS 对应转换：
+
+```text
+Command
+```
+
+建立：
+
+```text
+PrimaryModifier
+```
+
+统一快捷键系统。
+
+---
+
+# 二十六、核心快捷键
+
+### 标签
+
+```text
+Ctrl/Cmd + T
+新建标签
+
+Ctrl/Cmd + W
+关闭标签
+
+Ctrl/Cmd + Shift + T
+恢复关闭标签
+
+Ctrl/Cmd + Tab
+下一个标签
+
+Ctrl/Cmd + Shift + Tab
+上一个标签
+
+Ctrl/Cmd + 1 ~ 8
+进入指定标签
+
+Ctrl/Cmd + 9
+最后一个标签
+```
+
+---
+
+### 地址栏
+
+```text
+Ctrl/Cmd + L
+聚焦地址栏
+```
+
+Windows / Linux 同时支持：
+
+```text
+Alt + D
+```
+
+---
+
+### 收藏
+
+```text
+Ctrl/Cmd + D
+收藏当前文件 / 文件夹
+
+Ctrl/Cmd + Shift + B
+显示 / 隐藏收藏栏
+```
+
+收藏管理器采用接近 Chrome 的快捷键。
+
+---
+
+### 查找
+
+```text
+Ctrl/Cmd + F
+当前目录快速过滤
+```
+
+全局搜索：
+
+```text
+Ctrl/Cmd + Shift + F
+```
+
+---
+
+### 历史导航
+
+```text
+Alt + Left
+返回
+
+Alt + Right
+前进
+
+Alt + Up
+上一级
+```
+
+在 macOS 下提供对应系统友好的映射。
+
+---
+
+### 刷新
+
+Windows / Linux：
+
+```text
+Ctrl + R
+F5
+```
+
+macOS：
+
+```text
+Command + R
+```
+
+刷新当前目录。
+
+参考 Chrome：
+
+```text
+Ctrl/Cmd + R
+```
+
+概念。
+
+---
+
+# 二十七、文件管理快捷键
+
+浏览器没有对应的部分遵循系统文件管理习惯。
+
+```text
+Ctrl/Cmd + C
+复制
+
+Ctrl/Cmd + X
+剪切
+
+Ctrl/Cmd + V
+粘贴
+
+Ctrl/Cmd + A
+全选
+
+Ctrl/Cmd + Z
+撤销
+
+F2
+重命名（Windows/Linux）
+
+Delete
+移到回收站
+```
+
+macOS 使用符合 Finder / macOS 用户习惯的对应快捷键。
+
+---
+
+# 二十八、快捷键优先级
+
+快捷键设计原则：
+
+```text
+第一优先：
+Chrome 已存在的行为
+→ 尽可能完全一致
+
+第二优先：
+操作系统已有文件管理习惯
+→ 保持一致
+
+第三优先：
+UFM 新功能
+→ 创建新快捷键
+```
+
+不要为了创新改变用户已经形成十几年的快捷键习惯。
+
+---
+
+# 二十九、快捷键管理器
+
+建立：
+
+```text
+ShortcutManager
+```
+
+禁止快捷键逻辑散落在组件里。
+
+数据结构：
+
+```text
+ShortcutAction
+
+id
+
+windows_linux
+
+macos
+
+scope
+
+enabled
+
+customizable
+```
+
+Scope：
+
+```text
+Global
+
+Window
+
+Tab
+
+FileList
+
+AddressBar
+```
+
+解决快捷键冲突。
+
+---
+
+# 三十、快捷键允许自定义
+
+设置：
+
+```text
+设置
+→ 快捷键
+```
+
+显示：
+
+```text
+操作                 Windows/Linux        macOS
+
+新建标签             Ctrl + T              Cmd + T
+
+关闭标签             Ctrl + W              Cmd + W
+
+恢复标签             Ctrl+Shift+T          Cmd+Shift+T
+
+地址栏               Ctrl + L              Cmd + L
+
+收藏                 Ctrl + D              Cmd + D
+```
+
+允许修改。
+
+提供：
+
+```text
+恢复默认快捷键
+```
+
+---
+
+# 三十一、启动会话
+
+完全参考 Chrome：
+
+设置：
+
+```text
+启动时
+```
+
+提供：
+
+```text
+○ 打开主页
+
+○ 恢复上次会话
+
+○ 打开指定工作区
+```
+
+默认推荐：
+
+```text
+恢复上次会话
+```
+
+---
+
+# 三十二、崩溃恢复
+
+如果软件异常退出：
+
+下次启动提示：
+
+```text
+UFM 上次未正常关闭
+
+[恢复标签]
+```
+
+或者根据设置：
+
+```text
+自动恢复
+```
+
+标签恢复行为参考浏览器。
+
+---
+
+# 三十三、多窗口
+
+支持：
+
+Windows / Linux：
+
+```text
+Ctrl + N
+```
+
+macOS：
+
+```text
+Command + N
+```
+
+创建新窗口。
+
+每个窗口：
+
+```text
+拥有独立标签组
+```
+
+标签可：
+
+```text
+拖到其他窗口。
+```
+
+---
+
+# 三十四、收藏项点击行为
+
+普通左键：
+
+文件夹：
+
+```text
+当前标签打开
+```
+
+文件：
+
+```text
+默认程序打开
+```
+
+鼠标中键点击文件夹收藏：
+
+```text
+新标签打开
+```
+
+Ctrl/Cmd + 点击：
+
+```text
+新标签打开
+```
+
+Shift + 点击：
+
+```text
+新窗口打开
+```
+
+尽量参考 Chrome 对链接的处理逻辑。
+
+---
+
+# 三十五、文件夹中键打开
+
+文件列表中的文件夹：
+
+双击：
+
+```text
+当前标签打开
+```
+
+鼠标中键：
+
+```text
+后台新标签打开
+```
+
+Ctrl/Cmd + 双击：
+
+```text
+新标签打开
+```
+
+Shift：
+
+```text
+新窗口
+```
+
+形成与浏览器链接类似的操作体验。
+
+---
+
+# 三十六、Chrome 风格右键标签逻辑
+
+右键目录：
+
+```text
+打开
+
+在新标签中打开
+
+在后台新标签打开
+
+在新窗口打开
+
+添加到收藏夹
+```
+
+使用户感觉：
+
+```text
+文件夹
+≈
+浏览器中的链接
+```
+
+这是整个产品的重要交互思想。
+
+---
+
+# 三十七、文件搜索
+
+Windows：
+
+优先：
+
+```text
+Everything
+```
+
+建立：
+
+```text
+EverythingSearchProvider
+```
+
+通过：
+
+```text
+Everything SDK / IPC
+```
+
+实现。
+
+不要控制 Everything GUI。
+
+---
+
+# 三十八、macOS 搜索
+
+使用：
+
+```text
+SpotlightSearchProvider
+```
+
+优先使用 Spotlight。
+
+---
+
+# 三十九、Linux 搜索
+
+使用：
+
+```text
+LinuxSearchProvider
+```
+
+自动检测：
+
+```text
+plocate
+
+locate
+```
+
+等能力。
+
+---
+
+# 四十、统一搜索接口
+
+实现：
+
+```text
+SearchProvider
+```
+
+具体：
+
+```text
+EverythingSearchProvider
+
+SpotlightSearchProvider
+
+LinuxSearchProvider
+
+InternalSearchProvider
+```
+
+策略：
+
+```text
+Windows
+Everything
+↓
+Internal
+
+macOS
+Spotlight
+↓
+Internal
+
+Linux
+System Index
+↓
+Internal
+```
+
+---
+
+# 四十一、跨平台系统接管
+
+支持：
+
+```text
+设为主要文件管理器
+```
+
+但所谓“劫持”必须采用：
+
+```text
+安全
+用户授权
+可恢复
+```
+
+方式。
+
+不允许：
+
+```text
+删除 Explorer
+
+替换 Finder
+
+修改系统二进制
+
+绕过默认应用保护
+```
+
+---
+
+# 四十二、Windows
+
+保留：
+
+```text
+explorer.exe
+```
+
+作为 Windows Shell。
+
+UFM 只尽可能接管：
+
+```text
+打开文件夹
+
+目录右键入口
+
+应用注册
+
+URI
+
+CLI
+
+文件管理入口
+```
+
+不能破坏：
+
+```text
+任务栏
+
+桌面
+
+Windows Shell
+```
+
+---
+
+# 四十三、macOS
+
+Finder 必须继续存在。
+
+通过系统允许的：
+
+```text
+Launch Services
+
+NSWorkspace
+
+Services
+
+Quick Actions
+
+Finder Integration
+```
+
+尽可能实现：
+
+```text
+Open in UFM
+```
+
+以及文件夹入口集成。
+
+---
+
+# 四十四、Linux
+
+注册：
+
+```text
+inode/directory
+```
+
+并通过：
+
+```text
+.desktop
+xdg-mime
+```
+
+等标准能力设置为目录默认处理程序。
+
+---
+
+# 四十五、一键接管 / 一键恢复
+
+设置：
+
+```text
+设置
+→ 系统集成
+```
+
+提供：
+
+```text
+设为主要文件管理器
+
+重新检测
+
+修复集成
+
+恢复系统默认
+```
+
+执行接管前：
+
+必须保存：
+
+```text
+IntegrationSnapshot
+```
+
+记录原系统配置。
+
+卸载 UFM：
+
+如果正在作为默认文件管理器：
+
+```text
+先恢复原配置
+↓
+再卸载
+```
+
+---
+
+# 四十六、侧边栏
+
+侧边栏不要承担收藏栏的功能。
+
+侧边栏主要：
+
+```text
+主页
+
+收藏夹
+
+工作区
+
+最近访问
+
+桌面
+
+下载
+
+文档
+
+图片
+
+视频
+
+磁盘
+
+网络
+```
+
+收藏栏：
+
+```text
+位于地址栏下方
+```
+
+和 Chrome 一样。
+
+两者可以同时存在。
+
+---
+
+# 四十七、工作区
+
+Workspace 类似：
+
+```text
+一组保存的浏览器标签
+```
+
+例如：
+
+```text
+AI 开发
+```
+
+保存：
+
+```text
+D:\AI\Projects
+
+D:\AI\Prompt
+
+D:\AI\Models
+
+D:\AI\Output
+```
+
+点击工作区：
+
+一次恢复所有标签。
+
+---
+
+# 四十八、文件任务中心
+
+参考 Chrome 下载任务“后台运行”的思想。
+
+复制、移动等任务：
+
+不能阻塞标签。
+
+设计：
+
+```text
+TaskManager
+```
+
+任务在后台执行。
+
+用户可以继续：
+
+```text
+浏览其他标签
+
+搜索
+
+打开文件
+
+使用收藏
+```
+
+任务显示：
+
+```text
+文件
+
+来源
+
+目标
+
+速度
+
+进度
+
+剩余时间
+```
+
+---
+
+# 四十九、文件冲突
+
+提供：
+
+```text
+替换
+
+跳过
+
+保留两个
+
+取消
+```
+
+批量：
+
+```text
+全部执行此操作
+```
+
+---
+
+# 五十、收藏数据模型
+
+至少：
+
+```text
+BookmarkItem
+```
+
+字段：
+
+```text
+id
+
+type
+    file
+    folder
+    group
+
+name
+
+path
+
+logical_path
+
+icon
+
+parent_id
+
+sort_order
+
+created_at
+
+updated_at
+```
+
+不要分别做：
+
+```text
+FileFavorite
+FolderFavorite
+```
+
+统一使用 BookmarkItem。
+
+---
+
+# 五十一、标签数据模型
+
+```text
+TabState
+```
+
+至少：
+
+```text
+id
+
+title
+
+path
+
+icon
+
+is_pinned
+
+back_stack
+
+forward_stack
+
+view_mode
+
+sort
+
+scroll_position
+
+selected_items
+```
+
+---
+
+# 五十二、Pinia Store
+
+建议：
+
+```text
+stores/
+
+tabs.ts
+
+bookmarks.ts
+
+history.ts
+
+workspace.ts
+
+settings.ts
+
+search.ts
+
+tasks.ts
+
+windows.ts
+```
+
+不要把所有全局状态塞进：
+
+```text
+appStore
+```
+
+---
+
+# 五十三、Vue 组件建议
+
+```text
+components/
+
+TabBar/
+    TabBar.vue
+    TabItem.vue
+    TabContextMenu.vue
+
+BookmarkBar/
+    BookmarkBar.vue
+    BookmarkItem.vue
+    BookmarkFolder.vue
+
+AddressBar/
+    AddressBar.vue
+    Breadcrumb.vue
+    OmniboxSuggestions.vue
+
+FileList/
+    FileList.vue
+    FileRow.vue
+    FileGrid.vue
+
+Sidebar/
+
+TaskCenter/
+
+ContextMenu/
+
+Search/
+```
+
+---
+
+# 五十四、Rust 模块
+
+建议：
+
+```text
+src-tauri/src/
+
+filesystem/
+
+search/
+
+platform/
+
+integration/
+
+tasks/
+
+bookmarks/
+
+database/
+
+session/
+
+watcher/
+
+thumbnail/
+
+commands/
+```
+
+禁止：
+
+```text
+main.rs
+```
+
+包含整个项目核心逻辑。
+
+---
+
+# 五十五、数据库
+
+推荐：
+
+```text
+SQLite
+```
+
+保存：
+
+```text
+收藏夹
+
+收藏文件夹
+
+工作区
+
+浏览历史
+
+最近关闭标签
+
+会话
+
+操作历史
+```
+
+用户设置：
+
+可以使用：
+
+```text
+JSON
+```
+
+---
+
+# 五十六、性能要求
+
+必须能够流畅打开：
+
+```text
+10,000
+
+50,000
+
+100,000+
+```
+
+文件目录。
+
+Vue 文件列表：
+
+必须：
+
+```text
+虚拟滚动
+```
+
+不要产生十万个 DOM。
+
+---
+
+# 五十七、最终视觉体验
+
+顶部结构建议：
+
+```text
+标签栏
+↓
+导航栏 + 地址栏 + 搜索
+↓
+收藏栏
+↓
+文件内容
+```
+
+整体非常接近浏览器信息架构：
+
+```text
+Chrome：
+
+Tabs
+Omnibox
+Bookmarks
+Web Page
+
+
+UFM：
+
+Tabs
+File Omnibox
+Bookmarks
+File View
+```
+
+这是本项目 UI 的核心。
+
+---
+
+# 五十八、产品最重要的设计语言
+
+请始终按照以下方式理解：
+
+```text
+网页      → 文件 / 文件夹
+
+URL       → 文件路径
+
+网页标签  → 文件夹标签
+
+链接      → 文件夹
+
+书签      → 文件 / 文件夹收藏
+
+书签栏    → 文件收藏栏
+
+历史记录  → 文件浏览历史
+
+地址栏    → 文件 Omnibox
+
+下载任务  → 文件传输任务
+
+恢复页面  → 恢复目录标签
+
+浏览器窗口 → 文件管理窗口
+```
+
+---
+
+# 五十九、不要做成 Explorer 克隆
+
+这个项目绝对不要变成：
+
+```text
+Windows Explorer
++
+顶部多标签
+```
+
+真正定位：
+
+> **Chrome 思维重新设计文件管理器。**
+
+重点是：
+
+```text
+Tabs
+
+Bookmarks
+
+Omnibox
+
+History
+
+Session
+
+Keyboard Shortcuts
+
+Workspace
+```
+
+成为整个文件管理流程的基础。
+
+---
+
+# 六十、最终目标
+
+最终用户应该能够：
+
+```text
+Ctrl/Cmd + T
+打开新文件标签
+
+Ctrl/Cmd + L
+输入路径
+
+Ctrl/Cmd + D
+收藏文件或目录
+
+Ctrl/Cmd + Shift + B
+显示收藏栏
+
+Ctrl/Cmd + W
+关闭标签
+
+Ctrl/Cmd + Shift + T
+重新打开标签
+
+Ctrl/Cmd + 1~9
+快速切换
+
+中键文件夹
+后台标签打开
+
+拖动标签
+重新排序
+
+拖动收藏
+整理收藏夹
+```
+
+几乎不需要学习新的操作方式。
+
+对于长期使用 Chrome 的用户：
+
+第一次启动 UFM：
+
+```text
+基本就知道怎么使用。
+```
+
+---
+
+# 开发执行要求
+
+请不要一开始直接生成大量代码。
+
+首先完成：
+
+```text
+1. 分析完整需求
+
+2. 设计 Tauri + Vue 3 + TypeScript + Rust 总体架构
+
+3. 设计 Vue 页面与组件树
+
+4. 设计 Pinia Store
+
+5. 设计 Rust 模块
+
+6. 设计 Tab 数据结构
+
+7. 设计 Bookmark 数据结构
+
+8. 设计 ShortcutManager
+
+9. 设计 SearchProvider
+
+10. 设计 PlatformAdapter
+
+11. 设计 SystemIntegrationManager
+
+12. 设计 SQLite Schema
+
+13. 设计异常恢复机制
+
+14. 列出 MVP 开发阶段
+
+15. 再开始编码
+```
+
+开发优先级：
+
+```text
+数据安全
+>
+系统稳定
+>
+标签体验
+>
+收藏体验
+>
+操作效率
+>
+搜索性能
+>
+跨平台一致性
+>
+UI 美观
+>
+附加功能
+```
+
+最终交付的必须是一款真正能够长期作为主要文件管理器使用的软件，而不是 UI Demo。
+
+这样定位以后其实非常清晰：**Chrome 管“网页”，你的软件管“文件”。** 比如 Chrome 的 `Ctrl+T / Ctrl+W / Ctrl+Shift+T / Ctrl+L / Ctrl+D / Ctrl+Shift+B / Ctrl+1~9` 都能自然映射过去。
+
+我还特意把**“收藏文件”**提升成一等功能了——例如 `需求.txt`、`README.md`、某个 PDF 都可以直接放在顶部收藏栏，不必为了收藏一个文件先收藏它所在的文件夹。
