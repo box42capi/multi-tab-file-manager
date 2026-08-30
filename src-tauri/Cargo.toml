@@ -1,17 +1,14 @@
 [package]
-name = "ufm-tmp"
+name = "ufm"
 version = "0.1.0"
-description = "A Tauri App"
-authors = ["you"]
+description = "UFM —— Chrome 风格多标签文件管理器（Tauri 2 + Vue 3 + TypeScript + Rust）"
+authors = ["UFM"]
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [lib]
-# The `_lib` suffix may seem redundant but it is necessary
-# to make the lib name unique and wouldn't conflict with the bin name.
-# This seems to be only an issue on Windows, see https://github.com/rust-lang/cargo/issues/8519
-name = "ufm_tmp_lib"
+# `_lib` 后缀用于避免 lib 与 bin 在 Windows 上重名冲突
+# 参见 https://github.com/rust-lang/cargo/issues/8519
+name = "ufm_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
@@ -22,4 +19,3 @@ tauri = { version = "2", features = [] }
 tauri-plugin-opener = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-

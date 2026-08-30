@@ -2,5 +2,5 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 fn main() {
-    ufm_tmp_lib::run()
+    ufm_lib::run()
 }
